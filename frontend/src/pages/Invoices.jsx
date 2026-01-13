@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
+import PaymentInterface from '../components/PaymentInterface';
 
 const Invoices = () => {
   const { user } = useAuth();
@@ -9,6 +10,8 @@ const Invoices = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [formData, setFormData] = useState({
     ownerId: '',
     amount: '',
@@ -207,7 +210,7 @@ const Invoices = () => {
           </table>
         </div>
       ) : (
-        // Owner view - cards (cannot mark as paid)
+        // Owner view - cards (with Pay button)
         <div style={styles.cardGrid}>
           {invoices.length === 0 ? (
             <div style={styles.emptyContainer}>
@@ -229,7 +232,7 @@ const Invoices = () => {
                 <div style={styles.cardBody}>
                   <div style={styles.cardRow}>
                     <span>Amount:</span>
-                    <strong>₹{inv.amount}</strong>
+                    <strong style={styles.amountText}>₹{inv.amount}</strong>
                   </div>
                   <div style={styles.cardRow}>
                     <span>Due Date:</span>
@@ -241,10 +244,34 @@ const Invoices = () => {
                   </div>
                 </div>
                 
+                {!inv.paid && (
+                  <button
+                    onClick={() => {
+                      setSelectedInvoice(inv);
+                      setShowPaymentModal(true);
+                    }}
+                    style={styles.payBtn}
+                  >
+                    💳 Pay ₹{inv.amount}
+                  </button>
+                )}
               </div>
             ))
           )}
         </div>
+      )}
+
+      {showPaymentModal && selectedInvoice && (
+        <PaymentInterface
+          invoice={selectedInvoice}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setSelectedInvoice(null);
+          }}
+          onPaymentSuccess={() => {
+            fetchInvoices();
+          }}
+        />
       )}
     </div>
   );
@@ -417,6 +444,23 @@ const styles = {
     padding: '10px',
     borderRadius: '4px',
     fontSize: '12px'
+  },
+  payBtn: {
+    width: '100%',
+    padding: '12px',
+    backgroundColor: '#27ae60',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s ease',
+    marginTop: '15px'
+  },
+  amountText: {
+    color: '#27ae60',
+    fontSize: '16px'
   }
 };
 

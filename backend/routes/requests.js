@@ -3,6 +3,7 @@ const { body } = require('express-validator');
 const authMiddleware = require('../middleware/auth');
 const { isAdmin } = require('../middleware/roles');
 const {
+  sendRequestOTP,
   createRequest,
   getRequests,
   getMyRequests,
@@ -11,6 +12,16 @@ const {
 } = require('../controllers/requestController');
 
 const router = express.Router();
+
+// Send OTP for service request
+router.post(
+  '/send-otp',
+  authMiddleware,
+  [
+    body('email').isEmail().withMessage('Valid email required')
+  ],
+  sendRequestOTP
+);
 
 // Get my requests - MUST come before generic routes
 router.get('/my', authMiddleware, getMyRequests);

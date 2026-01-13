@@ -35,4 +35,16 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.delete('/:id', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const notice = await Notice.findByIdAndDelete(req.params.id);
+    if (!notice) {
+      return res.status(404).json({ error: 'Notice not found' });
+    }
+    res.json({ message: 'Notice deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

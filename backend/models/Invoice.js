@@ -21,6 +21,15 @@ const invoiceSchema = new mongoose.Schema({
   paymentTxId: {
     type: String
   },
+  paymentMethod: {
+    type: String,
+    enum: ['upi', 'credit-card', 'manual', null],
+    default: null
+  },
+  paidAt: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/api';
+import { useAuth } from '../context/AuthContext';
 
 const Notices = () => {
+  const { user } = useAuth();
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -52,20 +54,34 @@ const Notices = () => {
     }
   };
 
+  const handleDelete = async (noticeId) => {
+    if (window.confirm('Are you sure you want to delete this notice?')) {
+      try {
+        setError('');
+        await api.delete(`/api/notices/${noticeId}`);
+        fetchNotices();
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to delete notice');
+      }
+    }
+  };
+
   if (loading) return <div style={styles.container}>Loading...</div>;
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h1>📢 Notices</h1>
-        <button onClick={() => setShowForm(!showForm)} style={styles.createBtn}>
-          {showForm ? 'Cancel' : '+ Create Notice'}
-        </button>
+        {user?.role === 'admin' && (
+          <button onClick={() => setShowForm(!showForm)} style={styles.createBtn}>
+            {showForm ? 'Cancel' : '+ Create Notice'}
+          </button>
+        )}
       </div>
 
       {error && <div style={styles.error}>{error}</div>}
 
-      {showForm && (
+      {showForm && user?.role === 'admin' && (
         <div style={styles.formContainer}>
           <h2>Create New Notice</h2>
           <form onSubmit={handleSubmit} style={styles.form}>
@@ -116,11 +132,22 @@ const Notices = () => {
       <div style={styles.noticesGrid}>
         {notices.map((notice) => (
           <div key={notice._id} style={styles.noticeCard}>
-            <h3>{notice.title}</h3>
-            <p>{notice.body}</p>
+            <h3 style={styles.noticeTitle}>{notice.title}</h3>
+            <p style={styles.noticeBody}>{notice.body}</p>
             <div style={styles.noticeFooter}>
               <span style={styles.visibleBadge}>{notice.visibleTo}</span>
-              <span style={styles.dateText}>{new Date(notice.createdAt).toLocaleDateString()}</span>
+              <div style={styles.footerRight}>
+                <span style={styles.dateText}>{new Date(notice.createdAt).toLocaleDateString()}</span>
+                {user?.role === 'admin' && (
+                  <button 
+                    onClick={() => handleDelete(notice._id)} 
+                    style={styles.deleteBtn}
+                    title="Delete notice"
+                  >
+                    🗑️
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -203,7 +230,7 @@ const styles = {
   },
   noticesGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
     gap: '20px',
     marginTop: '20px'
   },
@@ -211,8 +238,30 @@ const styles = {
     backgroundColor: 'white',
     padding: '20px',
     borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    borderLeft: '4px solid #3498db'
+    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+    borderLeft: '4px solid #3498db',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    overflow: 'hidden'
+  },
+  noticeTitle: {
+    margin: '0 0 12px 0',
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#2c3e50',
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    hyphens: 'auto'
+  },
+  noticeBody: {
+    margin: '0 0 auto 0',
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: '#34495e',
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    hyphens: 'auto'
   },
   noticeFooter: {
     display: 'flex',
@@ -220,7 +269,25 @@ const styles = {
     alignItems: 'center',
     marginTop: '15px',
     paddingTop: '15px',
-    borderTop: '1px solid #eee'
+    borderTop: '1px solid #ecf0f1',
+    flexShrink: 0
+  },
+  footerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px'
+  },
+  deleteBtn: {
+    background: 'none',
+    border: 'none',
+    fontSize: '16px',
+    cursor: 'pointer',
+    padding: '4px 8px',
+    borderRadius: '4px',
+    transition: 'background-color 0.3s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   visibleBadge: {
     backgroundColor: '#ecf0f1',

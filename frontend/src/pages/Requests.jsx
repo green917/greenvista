@@ -97,12 +97,12 @@ const Requests = () => {
           <table style={styles.table}>
             <thead>
               <tr style={styles.headerRow}>
-                <th style={styles.th}>👤 Owner</th>
-                <th style={styles.th}>🔧 Type</th>
-                <th style={styles.th}>📝 Details</th>
-                <th style={styles.th}>⚙️ Status</th>
-                <th style={styles.th}>📅 Date</th>
-                <th style={styles.th}>✏️ Actions</th>
+                <th style={styles.th}>Owner</th>
+                <th style={styles.th}>Type</th>
+                <th style={styles.th}>Details</th>
+                <th style={styles.th}>Status</th>
+                <th style={styles.th}>Date</th>
+                <th style={styles.th}>Actions</th>
               </tr>
             </thead>
             <tbody>

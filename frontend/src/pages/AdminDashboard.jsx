@@ -9,9 +9,18 @@ const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [timer, setTimer] = useState({});
 
   useEffect(() => {
     fetchPendingRequests();
+  }, []);
+
+  // Timer effect to update elapsed time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimer(prev => ({ ...prev }));
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchPendingRequests = async () => {
@@ -35,6 +44,80 @@ const AdminDashboard = () => {
       setRequests(prev => prev.filter(req => req._id !== id));
     } catch (err) {
       console.error('Error updating request:', err);
+    }
+  };
+
+  const getElapsedTime = (createdAt) => {
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffMs = now - created;
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      return `${diffDays}d ${diffHours % 24}h ago`;
+    } else if (diffHours > 0) {
+      return `${diffHours}h ${diffMins % 60}m ago`;
+    } else if (diffMins > 0) {
+      return `${diffMins}m ${diffSecs % 60}s ago`;
+    } else {
+      return `${diffSecs}s ago`;
+    }
+  };
+
+  const getCountdownTime = (requestedDate, requestedTime) => {
+    if (!requestedDate || !requestedTime) {
+      return null;
+    }
+
+    const now = new Date();
+    // Parse the date and time
+    const [hours, minutes] = requestedTime.split(':');
+    const requestedDateTime = new Date(requestedDate);
+    requestedDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    const diffMs = requestedDateTime - now;
+    
+    // If time has passed, show "Time's up!" or overdue
+    if (diffMs < 0) {
+      const absDiffMs = Math.abs(diffMs);
+      const absDiffSecs = Math.floor(absDiffMs / 1000);
+      const absDiffMins = Math.floor(absDiffSecs / 60);
+      const absDiffHours = Math.floor(absDiffMins / 60);
+      const absDiffDays = Math.floor(absDiffHours / 24);
+
+      // Show "Time's up!" only for the first 5 minutes after expiry
+      if (absDiffMins < 5) {
+        return { text: "⏰ Time's up!", overdue: true };
+      }
+
+      if (absDiffDays > 0) {
+        return { text: `${absDiffDays}d ${absDiffHours % 24}h overdue`, overdue: true };
+      } else if (absDiffHours > 0) {
+        return { text: `${absDiffHours}h ${absDiffMins % 60}m overdue`, overdue: true };
+      } else if (absDiffMins > 0) {
+        return { text: `${absDiffMins}m ${absDiffSecs % 60}s overdue`, overdue: true };
+      } else {
+        return { text: `${absDiffSecs}s overdue`, overdue: true };
+      }
+    }
+
+    // Show time remaining
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      return { text: `${diffDays}d ${diffHours % 24}h left`, overdue: false };
+    } else if (diffHours > 0) {
+      return { text: `${diffHours}h ${diffMins % 60}m left`, overdue: false };
+    } else if (diffMins > 0) {
+      return { text: `${diffMins}m ${diffSecs % 60}s left`, overdue: false };
+    } else {
+      return { text: `${diffSecs}s left`, overdue: false };
     }
   };
 
@@ -106,6 +189,20 @@ const AdminDashboard = () => {
                   <h4 style={styles.requestType}>{req.type.charAt(0).toUpperCase() + req.type.slice(1)}</h4>
                   <p style={styles.requestOwner}>👤 {req.ownerId?.name}</p>
                   <p style={styles.requestDetails}>{req.details?.substring(0, 50)}...</p>
+                  {(req.requestedDate || req.requestedTime) && (
+                    <p style={styles.requestTiming}>
+                      Requested date🕐 {req.requestedDate && new Date(req.requestedDate).toLocaleDateString()} 
+                      {req.requestedTime && ` at ${req.requestedTime}`}
+                    </p>
+                  )}
+                  {getCountdownTime(req.requestedDate, req.requestedTime) && (
+                    <p style={{
+                      ...styles.requestTimer,
+                      ...(getCountdownTime(req.requestedDate, req.requestedTime).overdue && styles.requestTimerOverdue)
+                    }}>
+                      ⏱️ {getCountdownTime(req.requestedDate, req.requestedTime).text}
+                    </p>
+                  )}
                 </div>
                 <div style={styles.requestActions}>
                   <button
@@ -309,6 +406,31 @@ const styles = {
     margin: '3px 0',
     fontSize: '12px',
     color: '#7f8c8d'
+  },
+  requestTiming: {
+    margin: '6px 0 0 0',
+    fontSize: '12px',
+    color: '#27ae60',
+    fontWeight: '500',
+    backgroundColor: '#ecf0f1',
+    padding: '4px 8px',
+    borderRadius: '4px',
+    display: 'inline-block'
+  },
+  requestTimer: {
+    margin: '6px 0 0 8px',
+    fontSize: '12px',
+    color: '#27ae60',
+    fontWeight: '600',
+    backgroundColor: '#d5f4e6',
+    padding: '4px 8px',
+    borderRadius: '4px',
+    display: 'inline-block',
+    animation: 'pulse 1.5s infinite'
+  },
+  requestTimerOverdue: {
+    color: '#c0392b',
+    backgroundColor: '#fadbd8'
   },
   requestActions: {
     display: 'flex',

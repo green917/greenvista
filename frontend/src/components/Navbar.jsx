@@ -7,11 +7,17 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [hoveredLink, setHoveredLink] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
     setMobileMenuOpen(false);
+  };
+
+  const handleEditProfile = () => {
+    navigate('/profile');
+    setProfileDropdownOpen(false);
   };
 
   return (
@@ -81,8 +87,40 @@ const Navbar = () => {
         }}>
           {user ? (
             <>
-              <div style={styles.userBadge}>
-                {user.role === 'admin' ? '🔐' : '👤'} {user.name}
+              <div style={styles.profileContainer}>
+                <button 
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  style={styles.userBadge}
+                >
+                  {user.role === 'admin' ? '🔐' : '👤'} {user.name}
+                </button>
+                {profileDropdownOpen && (
+                  <div style={styles.profileDropdown}>
+                    <div style={styles.profileDropdownHeader}>
+                      <div style={styles.profileInfo}>
+                        <p style={styles.profileName}>{user.name}</p>
+                        <p style={styles.profileEmail}>{user.email}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handleEditProfile}
+                      style={styles.dropdownOption}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      ✏️ Edit Profile
+                    </button>
+                    <hr style={styles.dropdownDivider} />
+                    <button 
+                      onClick={handleLogout}
+                      style={{...styles.dropdownOption, color: '#e74c3c'}}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#fadbd8'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
+                )}
               </div>
               {user.role === 'admin' && (
                 <>
@@ -134,14 +172,6 @@ const Navbar = () => {
                 hovered={hoveredLink === 'notices'}
                 onHover={() => setHoveredLink('notices')}
               />
-              <button 
-                onClick={handleLogout} 
-                style={styles.logoutBtn}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#c0392b'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#e74c3c'}
-              >
-                Logout
-              </button>
             </>
           ) : (
             <>
@@ -304,6 +334,128 @@ const styles = {
       padding: '12px 16px',
       fontSize: '14px'
     }
+  },
+  profileContainer: {
+    position: 'relative'
+  },
+  userBadge: {
+    backgroundColor: '#1a1a1a',
+    color: 'white',
+    padding: '10px 16px',
+    borderRadius: '50px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '14px',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)',
+    '&:hover': {
+      backgroundColor: '#333',
+      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.4)'
+    }
+  },
+  profileDropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    backgroundColor: 'white',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
+    minWidth: '250px',
+    zIndex: 1001,
+    marginTop: '8px',
+    overflow: 'hidden'
+  },
+  profileDropdownHeader: {
+    padding: '15px',
+    borderBottom: '1px solid #eee',
+    backgroundColor: '#f9f9f9'
+  },
+  profileInfo: {
+    margin: 0
+  },
+  profileName: {
+    margin: '0 0 5px 0',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#2c3e50'
+  },
+  profileEmail: {
+    margin: 0,
+    fontSize: '12px',
+    color: '#7f8c8d'
+  },
+  dropdownOption: {
+    width: '100%',
+    padding: '12px 15px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.2s ease',
+    color: '#2c3e50'
+  },
+  dropdownDivider: {
+    margin: '0',
+    border: 'none',
+    borderTop: '1px solid #eee'
+  },
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+    maxWidth: '400px',
+    width: '90%',
+    maxHeight: '80vh',
+    overflowY: 'auto'
+  },
+  modalHeader: {
+    padding: '20px',
+    borderBottom: '1px solid #eee',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  closeBtn: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    fontSize: '20px',
+    cursor: 'pointer',
+    color: '#7f8c8d',
+    padding: '5px 10px',
+    '&:hover': {
+      color: '#2c3e50'
+    }
+  },
+  dropdownOption: {
+    width: '100%',
+    padding: '12px 15px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    transition: 'background-color 0.2s ease',
+    color: '#2c3e50'
+  },
+  dropdownDivider: {
+    margin: '0',
+    border: 'none',
+    borderTop: '1px solid #eee'
   }
 };
 

@@ -24,6 +24,12 @@ const serviceRequestSchema = new mongoose.Schema({
     ref: 'Staff'
   },
   images: [String],
+  requestedDate: {
+    type: Date
+  },
+  requestedTime: {
+    type: String
+  },
   createdAt: {
     type: Date,
     default: Date.now

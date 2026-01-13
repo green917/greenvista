@@ -31,14 +31,38 @@ router.get('/debug/my', authMiddleware, async (req, res) => {
 router.post('/', authMiddleware, isAdmin, async (req, res) => {
   try {
     const { ownerId, amount, dueDate } = req.body;
+    console.log('[Invoice Create] Request received:', { ownerId, amount, dueDate });
+    
     if (!ownerId || !amount || !dueDate) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-    const invoice = new Invoice({ ownerId, amount, dueDate });
+    
+    // Convert amount to number
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ error: 'Amount must be a valid positive number' });
+    }
+
+    console.log('[Invoice Create] Creating invoice with amount:', parsedAmount);
+
+    const invoice = new Invoice({ 
+      ownerId, 
+      amount: parsedAmount, 
+      dueDate 
+    });
+    
+    console.log('[Invoice Create] Invoice object before save:', invoice);
+    
     await invoice.save();
+    console.log('[Invoice Create] Invoice saved successfully');
+    
     await invoice.populate('ownerId', 'name email phone address');
+    console.log('[Invoice Create] Invoice populated:', invoice);
+    
     res.status(201).json(invoice);
   } catch (error) {
+    console.error('[Invoice Create] Error:', error);
+    console.error('[Invoice Create] Error details:', error.message, error.errors);
     res.status(500).json({ error: error.message });
   }
 });
@@ -81,6 +105,81 @@ router.put('/:id/pay', authMiddleware, isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error marking invoice as paid:', error.message);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Process payment from owner
+router.post('/process-payment', authMiddleware, async (req, res) => {
+  try {
+    const { invoiceId, amount, paymentMethod, paymentDetails } = req.body;
+
+    if (!invoiceId || !amount || !paymentMethod) {
+      return res.status(400).json({ error: 'Missing required payment details' });
+    }
+
+    // Validate payment method
+    if (!['upi', 'credit-card'].includes(paymentMethod)) {
+      return res.status(400).json({ error: 'Invalid payment method' });
+    }
+
+    // Find invoice
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    // Verify invoice belongs to current user
+    if (invoice.ownerId.toString() !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized: This invoice does not belong to you' });
+    }
+
+    // Check if already paid
+    if (invoice.paid) {
+      return res.status(400).json({ error: 'Invoice already paid' });
+    }
+
+    // Verify amount matches
+    if (parseFloat(amount) !== invoice.amount) {
+      return res.status(400).json({ error: 'Amount mismatch' });
+    }
+
+    // Generate transaction ID
+    const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    // Simulate payment processing
+    console.log(`[Payment] Processing ${paymentMethod} payment for invoice ${invoiceId}`);
+    console.log(`[Payment] Amount: ₹${amount}`);
+    console.log(`[Payment] Transaction ID: ${transactionId}`);
+
+    // In a real scenario, you would integrate with actual payment gateway here
+    // For now, we'll simulate success
+
+    // Update invoice as paid
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      invoiceId,
+      {
+        paid: true,
+        paymentTxId: transactionId,
+        paymentMethod: paymentMethod,
+        paidAt: new Date()
+      },
+      { new: true }
+    ).populate('ownerId', 'name email phone address');
+
+    console.log(`[Payment] Invoice ${invoiceId} marked as paid with transaction ${transactionId}`);
+
+    res.json({
+      success: true,
+      message: 'Payment processed successfully',
+      transactionId: transactionId,
+      invoice: updatedInvoice
+    });
+
+  } catch (error) {
+    console.error('Payment processing error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Payment processing failed'
+    });
   }
 });
 

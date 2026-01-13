@@ -10,7 +10,9 @@ const OwnerDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: '',
-    details: ''
+    details: '',
+    requestedDate: '',
+    requestedTime: ''
   });
   const [requests, setRequests] = useState([]);
   const [fetchingRequests, setFetchingRequests] = useState(true);
@@ -41,6 +43,14 @@ const OwnerDashboard = () => {
     });
   };
 
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -55,9 +65,11 @@ const OwnerDashboard = () => {
     try {
       await api.post('/api/requests', {
         type: formData.type,
-        details: formData.details
+        details: formData.details,
+        requestedDate: formData.requestedDate,
+        requestedTime: formData.requestedTime
       });
-      setFormData({ type: '', details: '' });
+      setFormData({ type: '', details: '', requestedDate: '', requestedTime: '' });
       setShowForm(false);
       fetchMyRequests();
     } catch (err) {
@@ -130,6 +142,31 @@ const OwnerDashboard = () => {
                 required
                 style={{...styles.input, minHeight: '100px'}}
               />
+            </div>
+
+            <div style={styles.formRow}>
+              <div style={styles.formGroup}>
+                <label>Requested Date</label>
+                <input
+                  type="date"
+                  name="requestedDate"
+                  value={formData.requestedDate}
+                  onChange={handleChange}
+                  min={getTodayDate()}
+                  style={styles.input}
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label>Requested Time</label>
+                <input
+                  type="time"
+                  name="requestedTime"
+                  value={formData.requestedTime}
+                  onChange={handleChange}
+                  style={styles.input}
+                />
+              </div>
             </div>
 
             <button type="submit" disabled={loading} style={styles.submitBtn}>
@@ -236,6 +273,11 @@ const styles = {
   formGroup: {
     display: 'flex',
     flexDirection: 'column'
+  },
+  formRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '15px'
   },
   label: {
     marginBottom: '5px',

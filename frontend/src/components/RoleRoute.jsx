@@ -10,11 +10,12 @@ const RoleRoute = ({ children, requiredRole }) => {
   }
 
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   if (user.role !== requiredRole) {
-    return <Navigate to="/dashboard" />;
+    // Redirect to appropriate dashboard based on role
+    return <Navigate to={user.role === 'admin' ? '/admin-dashboard' : '/owner-dashboard'} replace />;
   }
 
   return children;

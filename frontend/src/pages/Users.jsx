@@ -9,6 +9,7 @@ const Users = () => {
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
   const [sortBy, setSortBy] = useState('name');
   const [filterRole, setFilterRole] = useState('all'); // 'all', 'admin', 'owner'
+  const [openMenu, setOpenMenu] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -26,6 +27,32 @@ const Users = () => {
       setError(errorMsg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        setError('');
+        await api.delete(`/api/users/${userId}`);
+        fetchUsers();
+        setOpenMenu(null);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to delete user');
+      }
+    }
+  };
+
+  const handleMakeAdmin = async (userId) => {
+    if (window.confirm('Are you sure you want to make this user an admin?')) {
+      try {
+        setError('');
+        await api.put(`/api/users/${userId}/make-admin`);
+        fetchUsers();
+        setOpenMenu(null);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to update user role');
+      }
     }
   };
 
@@ -146,17 +173,44 @@ const Users = () => {
           <table style={styles.table}>
             <thead>
               <tr style={styles.headerRow}>
+                <th style={styles.th}>📷 Photo</th>
                 <th style={styles.th}>👤 Name</th>
                 <th style={styles.th}>📧 Email</th>
                 <th style={styles.th}>📱 Phone</th>
                 <th style={styles.th}>👔 Role</th>
                 <th style={styles.th}>📅 Joined</th>
                 <th style={styles.th}>📍 Address</th>
+                <th style={styles.th}>⚙️ Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedUsers.map((user) => (
                 <tr key={user._id} style={styles.row}>
+                  <td style={styles.tdPhoto}>
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%'}}>
+                      {user.profilePhoto ? (
+                        <img 
+                          src={`${import.meta.env.VITE_API_URL?.replace(/\/$/, '') || 'https://greenvista-1.onrender.com'}/${user.profilePhoto}`}
+                          alt={user.name}
+                          style={styles.photoImg}
+                          onError={(e) => {
+                            console.log('Image failed:', user.profilePhoto);
+                            e.target.style.display = 'none';
+                            const placeholder = e.target.parentElement.querySelector('[id^="photo-placeholder"]');
+                            if (placeholder) {
+                              placeholder.style.display = 'inline-flex';
+                            }
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        style={{...styles.photoPlaceholder, display: user.profilePhoto ? 'none' : 'inline-flex'}}
+                        id={`photo-placeholder-${user._id}`}
+                      >
+                        📷
+                      </div>
+                    </div>
+                  </td>
                   <td style={styles.td}><strong>{user.name}</strong></td>
                   <td style={styles.td}>{user.email}</td>
                   <td style={styles.td}>{user.phone}</td>
@@ -170,6 +224,33 @@ const Users = () => {
                   </td>
                   <td style={styles.td}><small>{new Date(user.createdAt).toLocaleDateString()}</small></td>
                   <td style={styles.td}><small>{user.address?.substring(0, 20) || '-'}</small></td>
+                  <td style={{...styles.td, position: 'relative'}}>
+                    <button
+                      onClick={() => setOpenMenu(openMenu === user._id ? null : user._id)}
+                      style={styles.menuBtn}
+                      title="More actions"
+                    >
+                      ⋮
+                    </button>
+                    {openMenu === user._id && (
+                      <div style={styles.actionMenu}>
+                        {user.role !== 'admin' && (
+                          <button
+                            onClick={() => handleMakeAdmin(user._id)}
+                            style={styles.menuItem}
+                          >
+                            👨‍💼 Make Admin
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteUser(user._id)}
+                          style={{...styles.menuItem, color: '#e74c3c'}}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -180,9 +261,9 @@ const Users = () => {
         <div style={styles.cardGrid}>
           {sortedUsers.map((user) => (
             <div key={user._id} style={{...styles.card, borderLeft: `4px solid ${user.role === 'admin' ? '#e74c3c' : '#27ae60'}`}}>
-              <div style={styles.cardHeader}>
-                <div style={styles.cardAvatar}>
-                  {user.name.charAt(0).toUpperCase()}
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px'}}>
+                <div>
+                  <h3 style={styles.cardName}>{user.name}</h3>
                 </div>
                 <span style={{
                   ...styles.roleBadge,
@@ -191,7 +272,6 @@ const Users = () => {
                   {user.role === 'admin' ? '👨‍💼 Admin' : '🏠 Owner'}
                 </span>
               </div>
-              <h3 style={styles.cardName}>{user.name}</h3>
               <div style={styles.cardInfo}>
                 <p><strong>📧 Email:</strong></p>
                 <p style={styles.cardValue}>{user.email}</p>
@@ -367,6 +447,36 @@ const styles = {
   td: {
     padding: '15px'
   },
+  tdPhoto: {
+    padding: '12px',
+    textAlign: 'center',
+    verticalAlign: 'middle',
+    position: 'relative',
+    display: 'table-cell',
+    height: '74px'
+  },
+  photoImg: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '8px',
+    objectFit: 'cover',
+    border: '2px solid #27ae60',
+    boxShadow: '0 2px 8px rgba(39, 174, 96, 0.2)',
+    display: 'inline-block',
+    margin: '0 auto'
+  },
+  photoPlaceholder: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '8px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e8f8f5',
+    border: '2px solid #27ae60',
+    fontSize: '24px',
+    margin: '0 auto'
+  },
   roleBadge: {
     color: 'white',
     padding: '6px 12px',
@@ -387,9 +497,6 @@ const styles = {
     transition: 'transform 0.3s ease, box-shadow 0.3s ease'
   },
   cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: '15px'
   },
   cardAvatar: {
@@ -417,6 +524,41 @@ const styles = {
     margin: '5px 0 15px 0',
     color: '#2c3e50',
     fontWeight: '500'
+  },
+  menuBtn: {
+    background: 'none',
+    border: 'none',
+    fontSize: '20px',
+    cursor: 'pointer',
+    padding: '4px 8px',
+    color: '#34495e',
+    transition: 'transform 0.2s ease',
+    borderRadius: '4px'
+  },
+  actionMenu: {
+    position: 'absolute',
+    top: '100%',
+    right: '0',
+    backgroundColor: 'white',
+    border: '1px solid #bdc3c7',
+    borderRadius: '6px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    zIndex: 100,
+    minWidth: '150px',
+    overflow: 'hidden'
+  },
+  menuItem: {
+    display: 'block',
+    width: '100%',
+    padding: '12px 15px',
+    border: 'none',
+    background: 'none',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '14px',
+    color: '#2c3e50',
+    transition: 'background-color 0.2s ease',
+    borderBottom: '1px solid #ecf0f1'
   }
 };
 
