@@ -1,83 +1,4 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-
-const Navbar = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [hoveredLink, setHoveredLink] = useState(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-    setMobileMenuOpen(false);
-  };
-
-  const handleEditProfile = () => {
-    navigate('/profile');
-    setProfileDropdownOpen(false);
-  };
-
-  return (
-    <nav style={styles.navbar}>
-      <style>{`
-        @keyframes slideInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .navbar-container {
-          animation: slideInDown 0.5s ease-out;
-        }
-        .nav-link {
-          position: relative;
-          transition: color 0.3s ease;
-        }
-        .nav-link::after {
-          content: '';
-          position: absolute;
-          width: 0;
-          height: 2px;
-          bottom: -5px;
-          left: 0;
-          background-color: #fff;
-          transition: width 0.3s ease;
-        }
-        .nav-link:hover::after {
-          width: 100%;
-        }
-        
-        @media (max-width: 768px) {
-          .nav-link::after {
-            display: none;
-          }
-          .nav-link {
-            padding: 10px 0;
-          }
-        }
-      `}</style>
-      <div style={styles.container} className="navbar-container">
-        <Link to="/" style={styles.logo}>
-          <span style={styles.logoIcon}>🌿</span> 
-          <span style={styles.logoText}>GREEN VISTA</span>
-        </Link>
-        
-        {/* Mobile Menu Toggle */}
-        <button 
-          style={styles.hamburger}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          <span style={styles.hamburgerLine}></span>
-          <span style={styles.hamburgerLine}></span>
-          <span style={styles.hamburgerLine}></span>
+={styles.hamburgerLine}></span>
         </button>
 
         {/* Desktop & Mobile Menu */}
@@ -455,6 +376,172 @@ const styles = {
   dropdownDivider: {
     margin: '0',
     border: 'none',
+    borderTop: '1px solid #eee'
+  }
+};
+
+export default Navbar;
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  return (
+    <nav style={styles.navbar}>
+      <div style={styles.container}>
+        <Link to="/" style={styles.logo}>
+          🌿 <span>GREEN VISTA</span>
+        </Link>
+
+        <div style={styles.menu}>
+          {user ? (
+            <>
+              <div style={styles.profileContainer}>
+                <button
+                  style={styles.userBadge}
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                >
+                  {user.role === 'admin' ? '🔐' : '👤'} {user.name}
+                </button>
+
+                {profileDropdownOpen && (
+                  <div style={styles.profileDropdown}>
+                    <div style={styles.profileHeader}>
+                      <p style={styles.profileName}>{user.name}</p>
+                      <p style={styles.profileEmail}>{user.email}</p>
+                    </div>
+
+                    <button
+                      style={styles.dropdownOption}
+                      onClick={() => navigate('/profile')}
+                    >
+                      ✏️ Edit Profile
+                    </button>
+
+                    <hr style={styles.dropdownDivider} />
+
+                    <button
+                      style={{ ...styles.dropdownOption, color: '#e74c3c' }}
+                      onClick={handleLogout}
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <NavItem to="/dashboard" label="Dashboard" />
+              <NavItem to="/requests" label="Requests" />
+              <NavItem to="/invoices" label="Invoices" />
+              <NavItem to="/notices" label="Notices" />
+            </>
+          ) : (
+            <>
+              <NavItem to="/login" label="Login" />
+              <NavItem to="/register" label="Register" />
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+const NavItem = ({ to, label }) => (
+  <Link to={to} style={styles.link}>
+    {label}
+  </Link>
+);
+
+const styles = {
+  navbar: {
+    backgroundColor: '#27ae60',
+    padding: '15px 0',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100
+  },
+  container: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '0 20px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  logo: {
+    color: 'white',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+    fontSize: '20px'
+  },
+  menu: {
+    display: 'flex',
+    gap: '20px',
+    alignItems: 'center'
+  },
+  link: {
+    color: 'white',
+    textDecoration: 'none',
+    fontSize: '14px'
+  },
+  profileContainer: {
+    position: 'relative'
+  },
+  userBadge: {
+    backgroundColor: '#1a1a1a',
+    color: 'white',
+    padding: '8px 14px',
+    borderRadius: '20px',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '13px'
+  },
+  profileDropdown: {
+    position: 'absolute',
+    top: '110%',
+    right: 0,
+    backgroundColor: 'white',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    minWidth: '220px',
+    boxShadow: '0 6px 12px rgba(0,0,0,0.15)',
+    zIndex: 1000
+  },
+  profileHeader: {
+    padding: '12px',
+    borderBottom: '1px solid #eee'
+  },
+  profileName: {
+    margin: 0,
+    fontSize: '14px',
+    fontWeight: '600'
+  },
+  profileEmail: {
+    margin: 0,
+    fontSize: '12px',
+    color: '#666'
+  },
+  dropdownOption: {
+    width: '100%',
+    padding: '10px 12px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontSize: '13px'
+  },
+  dropdownDivider: {
+    margin: 0,
     borderTop: '1px solid #eee'
   }
 };
