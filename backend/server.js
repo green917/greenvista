@@ -39,11 +39,10 @@ app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = [
       process.env.CLIENT_URL,
-      'https://greenvista-one.vercel.app',
-      'https://green-vista-one.vercel.app',
       'http://localhost:5173',
       'http://localhost:5174',
-      'http://localhost:5175'
+      'http://localhost:5175',
+      "https://greenvista-livid.vercel.app"
     ];
     
     if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
