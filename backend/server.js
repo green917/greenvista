@@ -36,18 +36,22 @@ app.locals.upload = upload;
 
 // Middleware
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     const allowedOrigins = [
       process.env.CLIENT_URL,
       'http://localhost:5173',
       'http://localhost:5174',
       'http://localhost:5175',
-      "https://greenvista-livid.vercel.app"
+      'https://greenvista-livid.vercel.app',
+      'https://greenvistaaaa.vercel.app',
+      'https://green-vista-one.vercel.app',
+      'https://greenvista-one.vercel.app'
     ];
-    
+
     if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
       callback(null, true);
     } else {
+      console.log('Blocked Origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
