@@ -1,14 +1,12 @@
-const nodemailer = require('nodemailer');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.zoho.in',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER || 'greenvista@zohomail.in',
-    pass: process.env.EMAIL_PASSWORD || 'Jashwanth$0023'
-  }
-});
+// Configure Brevo API
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+const apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = process.env.BREVO_API_KEY;
+
+// Create API instance
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 // Generate OTP
 const generateOTP = () => {
@@ -19,7 +17,7 @@ const generateOTP = () => {
 const sendOTPEmail = async (email, otp, purpose = 'login') => {
   try {
     let subject, emailTitle;
-    
+
     if (purpose === 'login') {
       subject = 'GREEN VISTA - Login OTP Verification';
       emailTitle = 'Login Verification';
@@ -85,17 +83,22 @@ const sendOTPEmail = async (email, otp, purpose = 'login') => {
       </div>
     `;
 
-    const mailOptions = {
-      from: 'greenvista@zohomail.in',
-      to: email,
-      subject: subject,
-      html: htmlContent
+    // Create email object for Brevo
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.sender = {
+      name: 'GREEN VISTA',
+      email: process.env.BREVO_SENDER_EMAIL || 'greenvista@zohomail.in'
     };
+    sendSmtpEmail.to = [{ email: email }];
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
 
-    await transporter.sendMail(mailOptions);
+    // Send email via Brevo API
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log('[Brevo] OTP email sent successfully to:', email);
     return { success: true, message: 'OTP sent successfully' };
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('[Brevo] Email sending error:', error);
     return { success: false, message: 'Failed to send OTP', error: error.message };
   }
 };
@@ -140,17 +143,22 @@ const sendServiceRequestNotification = async (ownerEmail, ownerName, requestDeta
       </div>
     `;
 
-    const mailOptions = {
-      from: 'greenvista@zohomail.in',
-      to: ownerEmail,
-      subject: '✅ GREEN VISTA - Service Request Received',
-      html: htmlContent
+    // Create email object for Brevo
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+    sendSmtpEmail.sender = {
+      name: 'GREEN VISTA',
+      email: process.env.BREVO_SENDER_EMAIL || 'greenvista@zohomail.in'
     };
+    sendSmtpEmail.to = [{ email: ownerEmail }];
+    sendSmtpEmail.subject = '✅ GREEN VISTA - Service Request Received';
+    sendSmtpEmail.htmlContent = htmlContent;
 
-    await transporter.sendMail(mailOptions);
+    // Send email via Brevo API
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log('[Brevo] Service request notification sent successfully to:', ownerEmail);
     return { success: true, message: 'Notification sent successfully' };
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('[Brevo] Email sending error:', error);
     return { success: false, message: 'Failed to send notification', error: error.message };
   }
 };

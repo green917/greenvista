@@ -2,7 +2,3 @@ backend
 .git
 .gitignore
 README.md
-DEPLOYMENT_GUIDE.md
-VERCEL_RENDER_DEPLOYMENT.md
-UPLOAD_STEPS.md
-build.sh
