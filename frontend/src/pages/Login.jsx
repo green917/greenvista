@@ -264,11 +264,22 @@ const Login = () => {
     } catch (err) {
       console.error('Login error:', err);
       const errorMsg = err.response?.data?.error;
+      const errorDetails = err.response?.data?.details;
       console.log('Error message:', errorMsg);
+
       if (errorMsg === 'Email not registered') {
         setError('📧 This email is not registered. Please register first.');
       } else if (errorMsg === 'Incorrect password') {
         setError('🔐 Password is incorrect. Please try again.');
+      } else if (errorMsg === 'Brevo Account Pending Activation') {
+        setError(
+          <div>
+            <strong>⚠️ {errorMsg}</strong>
+            <p style={{ fontSize: '12px', marginTop: '10px', color: '#fff', opacity: 0.9 }}>
+              {errorDetails}
+            </p>
+          </div>
+        );
       } else {
         setError(errorMsg || 'Failed to verify credentials');
       }
@@ -284,21 +295,21 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/api/auth/verify-otp', { 
-        email, 
-        otp 
+      const response = await api.post('/api/auth/verify-otp', {
+        email,
+        otp
       });
-      
+
       // Save token and user data
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+
       // Store session creation time for non-admin users (5 minutes timeout)
       if (response.data.user.role !== 'admin') {
         const sessionStartTime = new Date().getTime();
         localStorage.setItem('sessionStartTime', sessionStartTime.toString());
       }
-      
+
       // Reload page after successful login to ensure fresh state and session setup
       window.location.href = response.data.user.role === 'admin' ? '/admin-dashboard' : '/owner-dashboard';
     } catch (err) {
@@ -312,7 +323,7 @@ const Login = () => {
   const handleResendOTP = async () => {
     setError('');
     setLoading(true);
-    
+
     try {
       const response = await api.post('/api/auth/verify-credentials-send-otp', { email, password });
       setOtpId(response.data.otpId);
@@ -354,7 +365,7 @@ const Login = () => {
       <div style={styles.card}>
         <h1 style={styles.title}> Login</h1>
         <p style={styles.subtitle}>GREEN VISTA - Where Nature Meets Art</p>
-        
+
         {error && <div style={styles.error}>{error}</div>}
 
         {step === 'credentials' ? (
@@ -407,12 +418,12 @@ const Login = () => {
                 style={styles.otpInput}
               />
               <p style={styles.helpText}>Enter 6-digit OTP (valid for {formatTimer()})</p>
-              
+
               {timer === 0 ? (
                 <div style={styles.resendContainer}>
                   <p style={styles.expiredText}>⏱️ OTP expired</p>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={handleResendOTP}
                     disabled={loading}
                     style={styles.resendButton}
