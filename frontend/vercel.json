@@ -4,5 +4,11 @@
   "installCommand": "npm ci",
   "env": {
     "VITE_API_URL": "https://greenvista-1.onrender.com/api"
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
