@@ -33,7 +33,7 @@ const seedDatabase = async () => {
 
     const admin = await User.create({
       name: 'Admin User',
-      email: 'greenvista@zohomail.in',
+      email: 'greenvistaaa@gmail.com',
       phone: '+1234567890',
       passwordHash: adminPasswordHash,
       role: 'admin'
@@ -142,7 +142,7 @@ const seedDatabase = async () => {
 
     console.log('\n=== SEED DATA CREATED SUCCESSFULLY ===\n');
     console.log('Admin Credentials:');
-    console.log(`  Email: greenvista@zohomail.in`);
+    console.log(`  Email: greenvistaaa@gmail.com`);
     console.log(`  Password: ${adminPassword}\n`);
 
     console.log('Owner 1 Credentials:');

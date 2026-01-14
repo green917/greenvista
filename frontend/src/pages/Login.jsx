@@ -459,7 +459,7 @@ const Login = () => {
 
         <div style={styles.contactInfo}>
           <h3> Contact Information</h3>
-          <p> Email: greenvista@zohomail.in</p>
+          <p> Email: greenvistaaa@gmail.com</p>
           <p> Phone: +91 9019004060</p>
           <p> Hours: Monday - Friday, 9 AM - 6 PM</p>
         </div>

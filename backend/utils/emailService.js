@@ -80,7 +80,7 @@ const sendOTPEmail = async (email, otp, purpose = 'login') => {
           
           <p style="color: #999; font-size: 12px;">
             <strong>Contact Information:</strong><br>
-            Email: greenvista@zohomail.in<br>
+            Email: greenvistaaa@gmail.com<br>
             Phone: +91 9019004060<br>
             Hours: Monday - Friday, 9 AM - 6 PM
           </p>
@@ -96,7 +96,7 @@ const sendOTPEmail = async (email, otp, purpose = 'login') => {
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
     sendSmtpEmail.sender = {
       name: 'GREEN VISTA',
-      email: process.env.BREVO_SENDER_EMAIL || 'greenvista@zohomail.in'
+      email: process.env.BREVO_SENDER_EMAIL || 'greenvistaaa@gmail.com'
     };
     sendSmtpEmail.to = [{ email: email }];
     sendSmtpEmail.subject = subject;
@@ -150,7 +150,7 @@ const sendServiceRequestNotification = async (ownerEmail, ownerName, requestDeta
           
           <p style="color: #999; font-size: 12px;">
             <strong>Contact Information:</strong><br>
-            Email: greenvista@zohomail.in<br>
+            Email: greenvistaaa@gmail.com<br>
             Phone: +91 9019004060<br>
             Hours: Monday - Friday, 9 AM - 6 PM
           </p>
@@ -162,7 +162,7 @@ const sendServiceRequestNotification = async (ownerEmail, ownerName, requestDeta
     const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
     sendSmtpEmail.sender = {
       name: 'GREEN VISTA',
-      email: process.env.BREVO_SENDER_EMAIL || 'greenvista@zohomail.in'
+      email: process.env.BREVO_SENDER_EMAIL || 'greenvistaaa@gmail.com'
     };
     sendSmtpEmail.to = [{ email: ownerEmail }];
     sendSmtpEmail.subject = '✅ GREEN VISTA - Service Request Received';
