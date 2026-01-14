@@ -22,7 +22,7 @@ const verifyCredentialsSendOTP = async (req, res) => {
     }
 
     const emailLower = email.toLowerCase().trim();
-    
+
     console.log('[Login] Attempting login with email:', emailLower);
 
     // Find user
@@ -37,7 +37,7 @@ const verifyCredentialsSendOTP = async (req, res) => {
     // Verify password
     const isPasswordValid = await bcryptjs.compare(password, user.passwordHash);
     console.log('[Login] Password valid:', isPasswordValid);
-    
+
     if (!isPasswordValid) {
       console.log('[Login] Invalid password for user:', emailLower);
       return res.status(401).json({ error: 'Incorrect password' });
@@ -73,8 +73,11 @@ const verifyCredentialsSendOTP = async (req, res) => {
         otpId: otpRecord._id
       });
     } else {
-      console.log('[Login] Failed to send OTP to:', email);
-      res.status(500).json({ error: 'Failed to send OTP' });
+      console.log('[Login] Failed to send OTP to:', email, 'Error:', emailResult.error);
+      res.status(500).json({
+        error: 'Failed to send OTP',
+        details: emailResult.error
+      });
     }
   } catch (error) {
     console.error('Verify credentials and send OTP error:', error);
@@ -123,7 +126,10 @@ const sendLoginOTP = async (req, res) => {
         otpId: otpRecord._id
       });
     } else {
-      res.status(500).json({ error: 'Failed to send OTP' });
+      res.status(500).json({
+        error: 'Failed to send OTP',
+        details: emailResult.error
+      });
     }
   } catch (error) {
     console.error('Send OTP error:', error);
@@ -295,8 +301,11 @@ const registerSendOTP = async (req, res) => {
         otpId: otpRecord._id
       });
     } else {
-      console.log('[Register] Failed to send OTP to:', email);
-      res.status(500).json({ error: 'Failed to send verification OTP' });
+      console.log('[Register] Failed to send OTP to:', email, 'Error:', emailResult.error);
+      res.status(500).json({
+        error: 'Failed to send verification OTP',
+        details: emailResult.error
+      });
     }
   } catch (error) {
     console.error('Register send OTP error:', error);
@@ -394,7 +403,7 @@ const verifyRegistrationOTP = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    res.status(400).json({ 
+    res.status(400).json({
       error: 'Login with password is disabled. Please use OTP verification.',
       instruction: 'Call POST /api/auth/send-otp with your email first, then verify with POST /api/auth/verify-otp'
     });
@@ -452,8 +461,11 @@ const forgotPasswordSendOTP = async (req, res) => {
         otpId: otpRecord._id
       });
     } else {
-      console.log('[Forgot Password] Failed to send OTP to:', email);
-      res.status(500).json({ error: 'Failed to send OTP' });
+      console.log('[Forgot Password] Failed to send OTP to:', email, 'Error:', emailResult.error);
+      res.status(500).json({
+        error: 'Failed to send OTP',
+        details: emailResult.error
+      });
     }
   } catch (error) {
     console.error('Forgot password send OTP error:', error);

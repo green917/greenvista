@@ -3,7 +3,15 @@ const SibApiV3Sdk = require('sib-api-v3-sdk');
 // Configure Brevo API
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
+
+// Re-initialize API Key configuration to ensure it picks up latest environment variables
+const setBrevoApiKey = () => {
+  const key = process.env.BREVO_API_KEY;
+  if (!key) {
+    console.warn('[Brevo] API Key is missing in environment variables!');
+  }
+  apiKey.apiKey = key;
+};
 
 // Create API instance
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
@@ -15,6 +23,7 @@ const generateOTP = () => {
 
 // Send OTP Email
 const sendOTPEmail = async (email, otp, purpose = 'login') => {
+  setBrevoApiKey();
   try {
     let subject, emailTitle;
 
@@ -105,6 +114,7 @@ const sendOTPEmail = async (email, otp, purpose = 'login') => {
 
 // Send Service Request Notification
 const sendServiceRequestNotification = async (ownerEmail, ownerName, requestDetails) => {
+  setBrevoApiKey();
   try {
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
