@@ -107,8 +107,13 @@ const sendOTPEmail = async (email, otp, purpose = 'login') => {
     console.log('[Brevo] OTP email sent successfully to:', email);
     return { success: true, message: 'OTP sent successfully' };
   } catch (error) {
-    console.error('[Brevo] Email sending error:', error);
-    return { success: false, message: 'Failed to send OTP', error: error.message };
+    // Extract the real error message from Brevo response body
+    const errorMessage = error.response && error.response.body ?
+      JSON.stringify(error.response.body) :
+      error.message;
+
+    console.error('[Brevo] Email sending error:', errorMessage);
+    return { success: false, message: 'Failed to send OTP', error: errorMessage };
   }
 };
 
@@ -168,8 +173,13 @@ const sendServiceRequestNotification = async (ownerEmail, ownerName, requestDeta
     console.log('[Brevo] Service request notification sent successfully to:', ownerEmail);
     return { success: true, message: 'Notification sent successfully' };
   } catch (error) {
-    console.error('[Brevo] Email sending error:', error);
-    return { success: false, message: 'Failed to send notification', error: error.message };
+    // Extract the real error message from Brevo response body
+    const errorMessage = error.response && error.response.body ?
+      JSON.stringify(error.response.body) :
+      error.message;
+
+    console.error('[Brevo] Email sending error:', errorMessage);
+    return { success: false, message: 'Failed to send notification', error: errorMessage };
   }
 };
 
