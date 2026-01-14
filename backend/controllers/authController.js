@@ -74,9 +74,10 @@ const verifyCredentialsSendOTP = async (req, res) => {
       });
     } else {
       console.log('[Login] Failed to send OTP to:', email, 'Error:', emailResult.error);
+      const isActivationError = emailResult && emailResult.error && emailResult.error.includes('not yet activated');
       res.status(500).json({
-        error: 'Failed to send OTP',
-        details: emailResult.error
+        error: isActivationError ? 'Brevo Account Pending Activation' : 'Failed to send OTP',
+        details: isActivationError ? 'Your Brevo account is not yet activated. Please check your Render/Server Logs for the OTP to continue testing.' : emailResult.error
       });
     }
   } catch (error) {
@@ -302,9 +303,10 @@ const registerSendOTP = async (req, res) => {
       });
     } else {
       console.log('[Register] Failed to send OTP to:', email, 'Error:', emailResult.error);
+      const isActivationError = emailResult && emailResult.error && emailResult.error.includes('not yet activated');
       res.status(500).json({
-        error: 'Failed to send verification OTP',
-        details: emailResult.error
+        error: isActivationError ? 'Brevo Account Pending Activation' : 'Failed to send verification OTP',
+        details: isActivationError ? 'Your Brevo account is not yet activated. Please check your Render/Server Logs for the OTP to continue testing.' : emailResult.error
       });
     }
   } catch (error) {
