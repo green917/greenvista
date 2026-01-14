@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "installCommand": "npm ci",
   "env": {
-    "VITE_API_URL": "https://greenvista-1.onrender.com/api"
+    "VITE_API_URL": "https://greenvista-3.onrender.com/api"
   },
   "rewrites": [
     {
